@@ -1,0 +1,8 @@
+## Interface: 30300
+## Title: |cffffffffI|r|cffffffffn|r|cffffffffs|r|cffffffffp|r|cffffffffe|r|cffffffffc|r|cfffffffft|r|cffffffff |r|cff00ff00S|r|cff00ff00t|r|cff00ff00a|r|cff00ff00t|r|cff00ff00s|r|cff00ff00 |r|cff00ff00P|r|cff00ff00a|r|cff00ff00n|r|cff00ff00e|r|cff00ff00l|r
+## Notes: Muestra resilience y estadisticas de combate al inspeccionar jugadores.
+## Author: Nidhaus
+## Version: 2.5
+## DefaultState: enabled
+
+InspectResilience.lua
