@@ -1,38 +1,40 @@
+*[Leer en español](README.es.md)*
+
 # Inspect Stats Panel
 
-Addon para **World of Warcraft 3.3.5a (WotLK)** que agrega un panel de estadísticas a la ventana de inspeccionar: cuando mirás el equipo de otro jugador, te muestra su **resiliencia** y el resto de sus stats de combate calculados a partir del equipo que lleva puesto.
+An addon for **World of Warcraft 3.3.5a (WotLK)** that adds a stats panel to the inspect window: when you look at another player's gear, it shows their **resilience** and the rest of their combat stats, calculated from the equipment they are wearing.
 
-**Versión:** 2.5 · **Autor:** Nidhaus
+**Version:** 2.5 · **Author:** Nidhaus
 
-## Para qué sirve
+## Why it exists
 
-En PvP saber la resiliencia del rival antes de pelear cambia la decisión de abrir o no. WoW 3.3.5a no muestra ese dato al inspeccionar, así que el addon lo calcula sumando el equipo del objetivo y lo presenta en un panel al costado de la ventana de inspección.
+In PvP, knowing the enemy's resilience before the fight changes whether you open on them or not. WoW 3.3.5a does not show that number when you inspect someone, so the addon adds it up from the target's gear and puts it in a panel next to the inspect window.
 
-## Qué hace
+## What it does
 
-- Muestra la **resiliencia** total del jugador inspeccionado.
-- Muestra el resto de **estadísticas de combate** derivadas del equipo.
-- Se integra en la ventana de inspección estándar, sin abrir ventanas aparte.
-- Activo por defecto (`## DefaultState: enabled`), no requiere configuración.
+- Shows the total **resilience** of the inspected player.
+- Shows the rest of the **combat stats** derived from their equipment.
+- Sits inside the standard inspect window — no extra frames to manage.
+- Enabled by default (`## DefaultState: enabled`), no setup required.
 
-## Instalación
+## Installation
 
-1. Cerrá el juego.
-2. Copiá la carpeta `InspectResilience` dentro de `World of Warcraft\Interface\AddOns\`.
-3. Iniciá el juego y activá el addon en el selector de la pantalla de personajes.
+1. Close the game.
+2. Copy the `InspectResilience` folder into `World of Warcraft\Interface\AddOns\`.
+3. Start the game and enable the addon on the character selection screen.
 
-## Comandos
+## Commands
 
-| Comando | Qué hace |
+| Command | Action |
 |---|---|
-| `/ires` | Abre las opciones del addon |
-| `/isp` | Alias corto |
-| `/inspectstats` | Alias largo |
+| `/ires` | Open the addon options |
+| `/isp` | Short alias |
+| `/inspectstats` | Long alias |
 
-## Compatibilidad
+## Compatibility
 
-Interface 30300 — WotLK 3.3.5a. Probado en Warmane.
+Interface 30300 — WotLK 3.3.5a. Tested on Warmane.
 
-## Licencia
+## License
 
-Uso libre. Si lo redistribuís o lo usás como base, mantené el crédito al autor.
+Free to use. If you redistribute it or build on it, keep the credit to the author.
