@@ -1,14 +1,6 @@
---------------------------------------------------------------
--- Inspect Stats Panel v2.8 - WoW 3.3.5a
--- v2.8: Wider arrow, stable position, lower on frame
---------------------------------------------------------------
-
 local ADDON_NAME = "InspectResilience"
 local EQUIP_SLOTS = { 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 }
 
---------------------------------------------------------------
--- STAT PATTERNS
---------------------------------------------------------------
 local STAT_PATTERNS = {
     { "%+(%d+) Stamina",             "STA" },
     { "^(%d+) Stamina",              "STA" },
@@ -98,9 +90,6 @@ local function RatingPct(key, val)
     if b and val and val > 0 then return val / b end
 end
 
---------------------------------------------------------------
--- Hidden tooltip
---------------------------------------------------------------
 local scanTip = CreateFrame("GameTooltip", "ISPScanTip", UIParent, "GameTooltipTemplate")
 scanTip:SetOwner(UIParent, "ANCHOR_NONE")
 
@@ -127,11 +116,6 @@ local function ScanSlotStats(unit, slot, stats)
     local n = scanTip:NumLines()
     if not n or n == 0 then return end
 
-    -- PRIMERA PASADA: encontrar a que CONJUNTO pertenece la pieza.
-    --
-    -- Hace falta para deduplicar bien los bonus. La linea del encabezado es
-    -- del estilo "Wrathful Gladiator's Investiture (2/5)" y viene en gris,
-    -- asi que se busca aparte del bucle de stats (que descarta el gris).
     local setName
     for i = 2, n do
         local obj = _G["ISPScanTipTextLeft" .. i]
@@ -152,17 +136,7 @@ local function ScanSlotStats(unit, slot, stats)
                 local isGray = (r == 128 and g == 128 and b == 128)
                 if not isGray and not line:find("^Use:") then
                     if line:find("^Set:") then
-                        -- LA CLAVE INCLUYE EL NOMBRE DEL CONJUNTO.
-                        --
-                        -- Antes se deduplicaba por el texto de la linea sola.
-                        -- Varias clases tienen DOS conjuntos de arena del
-                        -- mismo tier (el sacerdote uno con critico y otro con
-                        -- espiritu; el chaman uno con critico y otro con mp5)
-                        -- y los dos otorgan la misma linea literal:
-                        --     "Set: +100 resilience rating."
-                        -- Con la clave por texto, el segundo conjunto se
-                        -- descartaba como repetido y faltaban 100 de temple.
-                        -- Con el nombre adelante, cada conjunto cuenta el suyo.
+
                         local key = (setName or "?") .. "|" .. line
                         if not scannedSetBonuses[key] then
                             scannedSetBonuses[key] = true
@@ -228,9 +202,6 @@ local function ScanSlotResilience(unit, slot)
     return total
 end
 
---------------------------------------------------------------
--- Player real stats via API (for /isp test)
---------------------------------------------------------------
 local function GetPlayerRealStats()
     local stats = {}
     local _, str = UnitStat("player", 1); stats.STR = str or 0
@@ -276,17 +247,11 @@ local function GetPlayerRealStats()
     return stats, iN, iC > 0 and (iT / 16) or 0
 end
 
---------------------------------------------------------------
--- STATE
---------------------------------------------------------------
 local lastStats = {}
 local lastUnit = nil
 local panelShown = true
-local chatPrintsEnabled = false  -- toggle with /isp chat
+local chatPrintsEnabled = false
 
---------------------------------------------------------------
--- PANEL UI (BIGGER)
---------------------------------------------------------------
 local panel = CreateFrame("Frame", "InspectStatsPanel", UIParent)
 panel:SetWidth(230)
 panel:SetHeight(440)
@@ -302,25 +267,19 @@ panel:SetBackdrop({
 panel:SetBackdropColor(0, 0, 0, 0.93)
 panel:SetBackdropBorderColor(0.6, 0.2, 0.8, 1)
 
--- Title
 local titleText = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 titleText:SetPoint("TOP", 0, -10)
 titleText:SetFont("Fonts\\FRIZQT__.TTF", 13, "OUTLINE")
 titleText:SetText("|cff00ff99Inspect Stats|r")
 
--- Player name
 local nameText = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 nameText:SetPoint("TOP", titleText, "BOTTOM", 0, -2)
 nameText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
 
--- iLvl
 local ilvlText = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 ilvlText:SetPoint("TOP", nameText, "BOTTOM", 0, -2)
 ilvlText:SetFont("Fonts\\FRIZQT__.TTF", 10, "")
 
---------------------------------------------------------------
--- RESILIENCE BOX - NOW WITH TOOLTIP (only here)
---------------------------------------------------------------
 local resBg = CreateFrame("Frame", nil, panel)
 resBg:SetWidth(210); resBg:SetHeight(56)
 resBg:SetPoint("TOP", ilvlText, "BOTTOM", 0, -5)
@@ -332,7 +291,7 @@ resBg:SetBackdrop({
 })
 resBg:SetBackdropColor(0.15, 0.08, 0.25, 0.9)
 resBg:SetBackdropBorderColor(0.58, 0.35, 0.85, 0.8)
-resBg:EnableMouse(true)  -- Enable mouse for tooltip on resilience box ONLY
+resBg:EnableMouse(true)
 
 local resIcon = resBg:CreateTexture(nil, "ARTWORK")
 resIcon:SetSize(26, 26); resIcon:SetPoint("LEFT", 8, -4)
@@ -351,9 +310,6 @@ local resPct = resBg:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 resPct:SetPoint("RIGHT", resBg, "RIGHT", -8, 0)
 resPct:SetFont("Fonts\\FRIZQT__.TTF", 11, "")
 
---------------------------------------------------------------
--- BASE STATS ROW
---------------------------------------------------------------
 local baseLine = CreateFrame("Frame", nil, panel)
 baseLine:SetWidth(210); baseLine:SetHeight(22)
 baseLine:SetPoint("TOP", resBg, "BOTTOM", 0, -4)
@@ -372,9 +328,6 @@ for i, st in ipairs(BASE_STATS) do
     baseLabels[i] = { f = f, val = f.val, key = st.key }
 end
 
---------------------------------------------------------------
--- STAT LINES (bigger text)
---------------------------------------------------------------
 local MAX_LINES = 22
 local LINE_H = 15
 local statLines = {}
@@ -390,22 +343,15 @@ for i = 1, MAX_LINES do
     line:Hide(); statLines[i] = line
 end
 
--- Footer REMOVED (no more "Click: /say | R-Click: party")
-
---------------------------------------------------------------
--- ARROW TAB - Nidhaus texture, NO border, wide+tall tab
---------------------------------------------------------------
 local arrowBtn = CreateFrame("Button", "ISP_ArrowTab", UIParent)
 arrowBtn:SetWidth(25); arrowBtn:SetHeight(50)
 arrowBtn:SetFrameStrata("HIGH"); arrowBtn:EnableMouse(true); arrowBtn:Hide()
 arrowBtn:SetMovable(false)
 
--- NO backdrop - clean arrow only
 local arrowTex = arrowBtn:CreateTexture(nil, "OVERLAY")
 arrowTex:SetAllPoints(arrowBtn)
 arrowTex:SetTexture("Interface\\AddOns\\Nidhaus_UnitFrames\\Media\\RaidPanel-Toggle")
 
--- Fallback
 local arrowFallbackChecked = false
 local function EnsureArrowTexture()
     if arrowFallbackChecked then return end
@@ -424,7 +370,7 @@ local function EnsureArrowTexture()
 end
 
 local function UpdateArrowVisual()
-    -- Mirrored horizontally, always fixed
+
     arrowTex:SetTexCoord(1, 0.5, 0, 1)
 end
 
@@ -432,7 +378,7 @@ arrowBtn:SetScript("OnClick", function()
     panelShown = not panelShown
     if panelShown then panel:Show() else panel:Hide() end
     UpdateArrowVisual()
-    -- Do NOT reposition - arrow stays in place
+
 end)
 arrowBtn:SetScript("OnEnter", function(self)
     arrowTex:SetVertexColor(1, 0.8, 0.2, 1)
@@ -445,16 +391,13 @@ arrowBtn:SetScript("OnLeave", function(self)
     GameTooltip:Hide()
 end)
 
---------------------------------------------------------------
--- POSITIONING - Arrow stable, lower, on InspectFrame border
---------------------------------------------------------------
 local arrowPositioned = false
 
 local function PositionArrow()
     if not InspectFrame then return end
     arrowBtn:ClearAllPoints()
     arrowBtn:SetParent(InspectFrame)
-    -- Pegada al borde derecho del InspectFrame, hacia la izquierda
+
     arrowBtn:SetPoint("RIGHT", InspectFrame, "RIGHT", -8, -10)
     arrowBtn:SetFrameLevel(InspectFrame:GetFrameLevel() + 10)
     arrowPositioned = true
@@ -477,9 +420,6 @@ local function PositionAll()
     EnsureArrowTexture()
 end
 
---------------------------------------------------------------
--- FIND UNIT
---------------------------------------------------------------
 local function GetInspectUnit()
     if InspectFrame and InspectFrame.unit and UnitExists(InspectFrame.unit) then
         return InspectFrame.unit
@@ -488,9 +428,6 @@ local function GetInspectUnit()
     return nil
 end
 
---------------------------------------------------------------
--- POPULATE PANEL
---------------------------------------------------------------
 local function PopulatePanel(stats, itemCount, avgILvl, unit)
     lastStats = stats
     lastUnit = unit
@@ -504,7 +441,6 @@ local function PopulatePanel(stats, itemCount, avgILvl, unit)
 
     ilvlText:SetText(string.format("|cffaaaaaa%d items | iLvl: |cffffff00%.1f|r", itemCount, avgILvl))
 
-    -- Resilience
     local res = stats.RESILIENCE or 0
     resValue:SetText(tostring(res))
     resPct:SetText(string.format("|cff9482c9-%.1f%%|r", res / 81.97))
@@ -514,13 +450,11 @@ local function PopulatePanel(stats, itemCount, avgILvl, unit)
     elseif res > 0 then resValue:SetTextColor(1, 1, 1)
     else resValue:SetTextColor(0.5, 0.5, 0.5) end
 
-    -- Base stats
     for _, bs in ipairs(baseLabels) do
         local v = stats[bs.key] or 0
         bs.val:SetText(v > 0 and tostring(v) or "|cff444444-|r")
     end
 
-    -- Build display
     local data = {}
     local lastCat = nil
     for _, si in ipairs(STAT_DISPLAY) do
@@ -552,7 +486,6 @@ local function PopulatePanel(stats, itemCount, avgILvl, unit)
         else line:Hide() end
     end
 
-    -- Dynamic height (reduced bottom padding, no footer)
     local numLines = math.min(#data, MAX_LINES)
     local h = 10 + 16 + 14 + 12 + 5 + 56 + 4 + 22 + 5 + (numLines * LINE_H) + 10
     panel:SetHeight(math.max(h, 200))
@@ -569,9 +502,6 @@ local function PopulatePanel(stats, itemCount, avgILvl, unit)
     end
 end
 
---------------------------------------------------------------
--- UPDATE PANEL
---------------------------------------------------------------
 local function UpdatePanel()
     if not InspectFrame or not InspectFrame:IsShown() then
         panel:Hide(); arrowBtn:Hide(); return
@@ -600,9 +530,6 @@ local function UpdatePanel()
     PopulatePanel(stats, itemCount, avgILvl, unit)
 end
 
---------------------------------------------------------------
--- TOOLTIP: per-piece resilience ON RESILIENCE BOX ONLY
---------------------------------------------------------------
 resBg:SetScript("OnEnter", function(self)
     if not lastUnit or not UnitExists(lastUnit) then return end
     GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
@@ -632,12 +559,6 @@ resBg:SetScript("OnEnter", function(self)
 end)
 resBg:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
--- Panel has NO OnEnter/OnLeave (tooltip removed from panel)
--- Panel has NO OnMouseUp (chat report removed)
-
---------------------------------------------------------------
--- HOOK INSPECT FRAME
---------------------------------------------------------------
 local hooked = false
 local function HookInspectFrame()
     if not InspectFrame or hooked then return end
@@ -654,9 +575,6 @@ local function HookInspectFrame()
     end)
 end
 
---------------------------------------------------------------
--- AUTO-INSPECT ON TARGET CHANGE
---------------------------------------------------------------
 local function AutoInspectTarget()
     if not UnitExists("target") then
         if InspectFrame and InspectFrame:IsShown() then
@@ -679,9 +597,6 @@ local function AutoInspectTarget()
     end)
 end
 
---------------------------------------------------------------
--- EVENTS
---------------------------------------------------------------
 local ev = CreateFrame("Frame")
 ev:RegisterEvent("ADDON_LOADED")
 ev:RegisterEvent("INSPECT_READY")
@@ -710,9 +625,6 @@ end)
 
 HookInspectFrame()
 
---------------------------------------------------------------
--- SLASH COMMANDS
---------------------------------------------------------------
 SLASH_INSPECTRES1 = "/ires"
 SLASH_INSPECTRES2 = "/isp"
 SLASH_INSPECTRES3 = "/inspectstats"
